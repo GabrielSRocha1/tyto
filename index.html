@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TYTO EXECUTIVOS — Global Mastermind Network</title>
+
+<!-- ============================================================
+  PERSONALIZATION — Edite apenas estas variáveis
+  ============================================================ -->
+<script>
+  const CONFIG = {
+    nomePessoa:   "Rafael Monteiro",            // ← Nome do convidado
+    linkYouTube:  "https://youtu.be/GwOhrzhESGk?si=XIXR6ORCPn53sPlz", // ← Link do vídeo
+    linkWhatsApp: "https://chat.whatsapp.com/D5s1ISxhspnDs0WhMaso7O?s=sh&p=a&mlu=2", // ← Link do WhatsApp
+    thumbYouTube: ""   // ← URL da thumbnail (deixe vazio para usar padrão gerado)
+  };
+</script>
+<!-- ============================================================ -->
+
+<style>
+  /* ─── RESET & BASE ──────────────────────────────────────────── */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --gold:        #C9A84C;
+    --gold-light:  #F0D080;
+    --gold-dark:   #7A5C1E;
+    --navy:        #080E1A;
+    --navy-mid:    #0D1829;
+    --navy-glass:  rgba(8,14,26,.72);
+    --white:       #FAFAFA;
+    --glow-gold:   0 0 24px rgba(201,168,76,.55), 0 0 60px rgba(201,168,76,.25);
+    --glow-soft:   0 0 80px rgba(201,168,76,.12);
+    --radius:      18px;
+    --font-display:'Cinzel', serif;
+    --font-body:   'Inter', sans-serif;
+  }
+  html, body {
+    height: 100%;
+    background: var(--navy);
+    color: var(--white);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── FONTS ─────────────────────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+  /* ─── CANVAS PARTICLES ───────────────────────────────────────── */
+  #bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ─── AMBIENT ────────────────────────────────────────────────── */
+  .ambient-left {
+    position: fixed; top: -20%; left: -15%;
+    width: 60vw; height: 80vh;
+    background: radial-gradient(ellipse, rgba(201,168,76,.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .ambient-right {
+    position: fixed; bottom: -20%; right: -15%;
+    width: 60vw; height: 80vh;
+    background: radial-gradient(ellipse, rgba(20,80,160,.12) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── SCANLINE OVERLAY ───────────────────────────────────────── */
+  .scanlines {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,.04) 2px,
+      rgba(0,0,0,.04) 4px
+    );
+    opacity: .5;
+  }
+
+  /* ─── LAYOUT WRAPPER ─────────────────────────────────────────── */
+  .page {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 3vw, 40px) clamp(14px, 4vw, 32px);
+  }
+
+  /* ─── WELCOME BANNER ─────────────────────────────────────────── */
+  .welcome-bar {
+    width: 100%;
+    max-width: 1140px;
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeDown .9s ease both;
+  }
+  .welcome-bar span {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: clamp(.7rem, 1.8vw, .85rem);
+    font-weight: 400;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: .9;
+    padding: 6px 22px;
+    border: 1px solid rgba(201,168,76,.2);
+    border-radius: 40px;
+    background: rgba(201,168,76,.05);
+    backdrop-filter: blur(8px);
+  }
+  .welcome-bar .guest-name {
+    color: var(--gold-light);
+    font-weight: 600;
+  }
+
+  /* ─── MAIN GRID ──────────────────────────────────────────────── */
+  .grid {
+    width: 100%;
+    max-width: 1140px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(28px, 4.5vw, 64px);
+    align-items: center;
+  }
+
+  /* ─── DIVIDER LINE ───────────────────────────────────────────── */
+  .divider-v {
+    position: absolute;
+    left: 50%; top: 18%; bottom: 18%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, var(--gold) 35%, var(--gold-light) 50%, var(--gold) 65%, transparent);
+    transform: translateX(-50%);
+    opacity: .35;
+    pointer-events: none;
+    display: none; /* shown on desktop via media query */
+  }
+
+  /* ─── LEFT PANEL ─────────────────────────────────────────────── */
+  .left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(16px, 2.4vw, 28px);
+    animation: fadeLeft .9s .2s ease both;
+  }
+
+  /* LOGO mark */
+  .logo-mark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 2px;
+    width: 100%;
+  }
+  .owl-icon {
+    width: clamp(64px, 9vw, 96px);
+    filter: drop-shadow(0 0 18px rgba(201,168,76,.7));
+    animation: floatOwl 5s ease-in-out infinite;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 5.6rem);
+    font-weight: 900;
+    letter-spacing: .06em;
+    line-height: 1;
+    background: linear-gradient(135deg, #C9A84C 0%, #F0D080 45%, #C9A84C 70%, #7A5C1E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 16px rgba(201,168,76,.4));
+  }
+  .brand-sub {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: clamp(.55rem, 1.4vw, .72rem);
+    letter-spacing: .32em;
+    color: var(--gold);
+    opacity: .85;
+    width: 100%;
+  }
+  .brand-sub::before,
+  .brand-sub::after {
+    content: '';
+    display: block;
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold));
+    min-width: 18px;
+    opacity: .5;
+  }
+  .brand-sub::after {
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+  .brand-network {
+    font-family: var(--font-display);
+    font-size: clamp(.45rem, 1.1vw, .6rem);
+    letter-spacing: .4em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    opacity: .75;
+    margin-top: -2px;
+  }
+
+  /* Separator */
+  .sep {
+    width: 52px; height: 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(201,168,76,.5);
+  }
+
+  /* Headlines */
+  .headline {
+    font-family: var(--font-display);
+    font-size: clamp(1.4rem, 3.2vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: .03em;
+    background: linear-gradient(135deg, #fff 0%, #F0D080 60%, #C9A84C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subheadline {
+    font-size: clamp(.8rem, 1.6vw, .95rem);
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(250,250,250,.62);
+    max-width: 400px;
+  }
+
+  /* Badge row */
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .badge {
+    font-size: .62rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 5px 14px;
+    border: 1px solid rgba(201,168,76,.25);
+    border-radius: 30px;
+    background: rgba(201,168,76,.05);
+    backdrop-filter: blur(6px);
+  }
+
+  /* ─── RIGHT PANEL ────────────────────────────────────────────── */
+  .right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(18px, 2.6vw, 32px);
+    animation: fadeRight .9s .35s ease both;
+    width: 100%;
+  }
+
+  .right-label {
+    font-size: clamp(.65rem, 1.4vw, .75rem);
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: .75;
+    text-align: center;
+  }
+
+  /* VIDEO PLAYER FRAME */
+  .player-outer {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    border-radius: var(--radius);
+    padding: 3px;
+    background: linear-gradient(135deg, #C9A84C, #F0D080 40%, #C9A84C 70%, #4A3800);
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,.15),
+      var(--glow-gold),
+      0 32px 80px rgba(0,0,0,.6),
+      inset 0 0 40px rgba(201,168,76,.04);
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s;
+    transform: perspective(900px) rotateY(-3deg) rotateX(1.5deg);
+  }
+  .player-outer:hover {
+    transform: perspective(900px) rotateY(0deg) rotateX(0deg) scale(1.025);
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,.3),
+      0 0 40px rgba(201,168,76,.75), 0 0 100px rgba(201,168,76,.35),
+      0 40px 100px rgba(0,0,0,.7),
+      inset 0 0 60px rgba(201,168,76,.07);
+  }
+  .player-inner {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: calc(var(--radius) - 2px);
+    overflow: hidden;
+    background: var(--navy-mid);
+  }
+
+  /* Thumbnail */
+  .thumb {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(201,168,76,.18) 0%, transparent 60%),
+      linear-gradient(135deg, #050A14 0%, #0D1829 50%, #060C18 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: .7;
+    transition: opacity .4s;
+  }
+  .player-outer:hover .thumb img { opacity: .85; }
+
+  /* Ghost TYTO logo on thumb */
+  .thumb-logo {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    pointer-events: none;
+    opacity: .18;
+  }
+  .thumb-logo .t-owl { width: 56px; }
+  .thumb-logo .t-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem; font-weight: 900;
+    background: linear-gradient(135deg, #C9A84C, #F0D080);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass vignette */
+  .vignette {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,.5) 100%);
+    pointer-events: none;
+  }
+
+  /* Play button */
+  .play-btn {
+    position: absolute;
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: rgba(201,168,76,.12);
+    border: 2px solid rgba(201,168,76,.55);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .25s, background .25s, box-shadow .25s;
+    box-shadow: 0 0 0 8px rgba(201,168,76,.06), 0 0 30px rgba(201,168,76,.25);
+  }
+  .player-outer:hover .play-btn {
+    transform: scale(1.1);
+    background: rgba(201,168,76,.22);
+    box-shadow: 0 0 0 12px rgba(201,168,76,.09), 0 0 50px rgba(201,168,76,.45);
+  }
+  .play-btn svg { margin-left: 4px; }
+
+  /* YT badge */
+  .yt-badge {
+    position: absolute;
+    bottom: 10px; right: 12px;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(8px);
+    border-radius: 6px;
+    padding: 4px 10px;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .yt-badge svg { width: 20px; }
+  .yt-badge span {
+    font-size: .6rem; letter-spacing: .12em;
+    text-transform: uppercase; color: rgba(255,255,255,.7);
+  }
+
+  /* Caption */
+  .player-caption {
+    font-size: .65rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,.6);
+    text-align: center;
+    margin-top: -10px;
+  }
+
+  /* ─── CTA BUTTON ─────────────────────────────────────────────── */
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: clamp(14px, 2.2vw, 18px) clamp(28px, 5vw, 44px);
+    font-family: var(--font-display);
+    font-size: clamp(.72rem, 1.8vw, .88rem);
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    color: var(--navy);
+    background: linear-gradient(135deg, #C9A84C 0%, #F0D080 45%, #C9A84C 70%, #B8941E 100%);
+    border-radius: 60px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s;
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,.3),
+      0 0 30px rgba(201,168,76,.4),
+      0 8px 32px rgba(0,0,0,.4);
+    max-width: 100%;
+  }
+  .cta-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.22) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow:
+      0 0 0 1px rgba(201,168,76,.55),
+      0 0 50px rgba(201,168,76,.65),
+      0 16px 48px rgba(0,0,0,.45);
+  }
+  .cta-btn:hover::before { opacity: 1; }
+  .cta-btn:active { transform: scale(.98); }
+  .cta-icon {
+    width: 18px; height: 18px; flex-shrink: 0;
+  }
+
+  /* Ripple */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,.3);
+    transform: scale(0);
+    animation: rippleAnim .6s linear;
+    pointer-events: none;
+  }
+  @keyframes rippleAnim {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* ─── FOOTER STRIP ───────────────────────────────────────────── */
+  .footer {
+    width: 100%;
+    max-width: 1140px;
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(20px, 3.5vw, 40px);
+    animation: fadeUp 1s .6s ease both;
+  }
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(14px, 3vw, 32px);
+    font-size: clamp(.55rem, 1.2vw, .6rem);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,.35);
+    text-align: center;
+    padding: 0 12px;
+  }
+  .footer-inner span { cursor: default; }
+
+  /* ─── ANIMATIONS ─────────────────────────────────────────────── */
+  @keyframes fadeDown {
+    from { opacity:0; transform: translateY(-20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes fadeLeft {
+    from { opacity:0; transform: translateX(-30px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+  @keyframes fadeRight {
+    from { opacity:0; transform: translateX(30px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes floatOwl {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-9px) rotate(1deg); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+  }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────────────── */
+
+  /* Large desktop */
+  @media (min-width: 1400px) {
+    .grid { max-width: 1240px; gap: 72px; }
+    .player-outer { max-width: 540px; }
+  }
+
+  /* Tablet landscape & smaller desktop */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .grid { gap: 36px; }
+    .player-outer { max-width: 420px; }
+  }
+
+  /* Tablet & Mobile */
+  @media (max-width: 768px) {
+    .page { padding: 24px 16px; justify-content: flex-start; }
+    .welcome-bar { margin-bottom: 20px; }
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .left {
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+    }
+    .headline { text-align: center; }
+    .subheadline { max-width: 100%; text-align: center; }
+    .badges { justify-content: center; }
+    .sep { align-self: center; }
+    .player-outer {
+      transform: none;
+      max-width: 100%;
+    }
+    .player-outer:hover { transform: scale(1.015); }
+    .right { gap: 20px; }
+    .cta-btn { width: 100%; max-width: 360px; }
+    .play-btn { width: 60px; height: 60px; }
+    .play-btn svg { width: 24px; height: 24px; }
+  }
+
+  /* Small mobile */
+  @media (max-width: 480px) {
+    .page { padding: 18px 14px; }
+    .welcome-bar span {
+      padding: 5px 14px;
+      letter-spacing: .14em;
+      font-size: .65rem;
+    }
+    .grid { gap: 28px; }
+    .left { gap: 14px; }
+    .right { gap: 16px; }
+    .badges { gap: 6px; }
+    .badge {
+      font-size: .56rem;
+      padding: 4px 10px;
+      letter-spacing: .14em;
+    }
+    .play-btn {
+      width: 54px; height: 54px;
+      box-shadow: 0 0 0 6px rgba(201,168,76,.05), 0 0 20px rgba(201,168,76,.2);
+    }
+    .play-btn svg { width: 22px; height: 22px; }
+    .yt-badge { bottom: 8px; right: 8px; padding: 3px 7px; }
+    .yt-badge svg { width: 16px; }
+    .yt-badge span { font-size: .52rem; }
+    .cta-btn {
+      padding: 14px 24px;
+      letter-spacing: .16em;
+      width: 100%;
+    }
+    .footer { margin-top: 24px; }
+    .footer-inner { gap: 10px; flex-direction: column; }
+  }
+
+  /* Extra small phones */
+  @media (max-width: 360px) {
+    .page { padding: 14px 10px; }
+    .brand-name { font-size: 2.6rem !important; }
+    .headline { font-size: 1.25rem !important; }
+    .player-caption { letter-spacing: .14em; font-size: .58rem; }
+  }
+
+  /* Landscape phones - prevent overflow & keep CTA reachable */
+  @media (max-height: 600px) and (max-width: 900px) and (orientation: landscape) {
+    .page { padding: 16px 18px; justify-content: flex-start; }
+    .grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .left { align-items: flex-start; text-align: left; gap: 12px; }
+    .headline { text-align: left; }
+    .subheadline { text-align: left; }
+    .badges { justify-content: flex-start; }
+    .player-outer { max-width: 360px; }
+    .owl-icon { width: 56px; }
+  }
+
+  /* Desktop divider */
+  @media (min-width: 769px) {
+    .divider-v { display: block; }
+  }
+
+  /* Hover only on devices that support it (avoid sticky hover on touch) */
+  @media (hover: none) {
+    .player-outer:hover {
+      transform: perspective(900px) rotateY(-3deg) rotateX(1.5deg);
+      box-shadow:
+        0 0 0 1px rgba(201,168,76,.15),
+        var(--glow-gold),
+        0 32px 80px rgba(0,0,0,.6),
+        inset 0 0 40px rgba(201,168,76,.04);
+    }
+    .cta-btn:hover { transform: none; }
+  }
+
+  /* ─── REDUCED MOTION ─────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="ambient-left"></div>
+<div class="ambient-right"></div>
+<div class="scanlines"></div>
+
+<div class="page">
+
+  <!-- WELCOME BAR -->
+  <div class="welcome-bar">
+    <span>Bem-vindo(a), <span class="guest-name" id="guestName"></span> — Acesso Exclusivo Concedido</span>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid" style="position:relative;">
+    <div class="divider-v"></div>
+
+    <!-- LEFT -->
+    <div class="left">
+
+      <div class="logo-mark">
+        <!-- SVG Owl (inline, inspired by the TYTO brand) -->
+        <svg class="owl-icon" viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="og" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#F0D080"/>
+              <stop offset="55%" stop-color="#C9A84C"/>
+              <stop offset="100%" stop-color="#7A5C1E"/>
+            </radialGradient>
+            <filter id="gf">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <!-- Globe behind -->
+          <ellipse cx="60" cy="32" rx="28" ry="28" stroke="url(#og)" stroke-width="1" fill="none" opacity=".3"/>
+          <line x1="60" y1="4" x2="60" y2="60" stroke="url(#og)" stroke-width=".7" opacity=".25"/>
+          <line x1="32" y1="32" x2="88" y2="32" stroke="url(#og)" stroke-width=".7" opacity=".25"/>
+          <ellipse cx="60" cy="32" rx="14" ry="28" stroke="url(#og)" stroke-width=".7" fill="none" opacity=".2"/>
+          <!-- Wings -->
+          <path d="M60 55 C45 44 20 40 4 30 C14 48 30 58 50 62Z" fill="url(#og)" opacity=".85"/>
+          <path d="M60 55 C75 44 100 40 116 30 C106 48 90 58 70 62Z" fill="url(#og)" opacity=".85"/>
+          <!-- Body -->
+          <ellipse cx="60" cy="70" rx="22" ry="28" fill="url(#og)"/>
+          <!-- Face -->
+          <ellipse cx="60" cy="63" rx="18" ry="18" fill="url(#og)"/>
+          <!-- Eyes -->
+          <circle cx="53" cy="61" r="6.5" fill="#0D1829"/>
+          <circle cx="67" cy="61" r="6.5" fill="#0D1829"/>
+          <circle cx="53" cy="61" r="4" fill="url(#og)"/>
+          <circle cx="67" cy="61" r="4" fill="url(#og)"/>
+          <circle cx="52" cy="60" r="1.5" fill="#0D1829"/>
+          <circle cx="66" cy="60" r="1.5" fill="#0D1829"/>
+          <!-- Beak -->
+          <path d="M57 68 L60 72 L63 68Z" fill="#7A5C1E"/>
+          <!-- Ear tufts -->
+          <path d="M50 46 L46 36 L54 44Z" fill="url(#og)"/>
+          <path d="M70 46 L74 36 L66 44Z" fill="url(#og)"/>
+          <!-- Chest pattern -->
+          <path d="M48 82 Q60 75 72 82 Q60 92 48 82Z" fill="rgba(0,0,0,.15)"/>
+        </svg>
+
+        <div class="brand-name">TYTO</div>
+        <div class="brand-sub">EXECUTIVOS</div>
+        <div class="brand-network">GLOBAL MASTERMIND NETWORK</div>
+      </div>
+
+      <div class="sep"></div>
+
+      <h1 class="headline">A Elite Global<br>de Mentes Brilhantes</h1>
+      <p class="subheadline">
+        Você foi selecionado para acessar uma rede exclusiva de executivos, empresários e líderes de alta performance ao redor do mundo.
+      </p>
+
+      <div class="badges">
+        <span class="badge">Elite Global</span>
+        <span class="badge">Alto Nível</span>
+        <span class="badge">Acesso Restrito</span>
+        <span class="badge">Mastermind</span>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+
+      <p class="right-label">Assista à apresentação exclusiva</p>
+
+      <!-- VIDEO PLAYER -->
+      <div class="player-outer" id="videoPlayer" role="button" aria-label="Assistir apresentação no YouTube" tabindex="0">
+        <div class="player-inner">
+          <div class="thumb" id="thumbEl">
+            <!-- Thumbnail injected by JS -->
+            <div class="thumb-logo">
+              <svg class="t-owl" viewBox="0 0 120 110" fill="none">
+                <defs>
+                  <radialGradient id="og2" cx="50%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#F0D080"/>
+                    <stop offset="100%" stop-color="#7A5C1E"/>
+                  </radialGradient>
+                </defs>
+                <ellipse cx="60" cy="32" rx="28" ry="28" stroke="url(#og2)" stroke-width="1" fill="none" opacity=".4"/>
+                <path d="M60 55 C45 44 20 40 4 30 C14 48 30 58 50 62Z" fill="url(#og2)"/>
+                <path d="M60 55 C75 44 100 40 116 30 C106 48 90 58 70 62Z" fill="url(#og2)"/>
+                <ellipse cx="60" cy="70" rx="22" ry="28" fill="url(#og2)"/>
+                <ellipse cx="60" cy="63" rx="18" ry="18" fill="url(#og2)"/>
+                <circle cx="53" cy="61" r="6.5" fill="#080E1A"/>
+                <circle cx="67" cy="61" r="6.5" fill="#080E1A"/>
+                <circle cx="53" cy="61" r="3.5" fill="url(#og2)"/>
+                <circle cx="67" cy="61" r="3.5" fill="url(#og2)"/>
+                <path d="M57 68 L60 72 L63 68Z" fill="#7A5C1E"/>
+              </svg>
+              <span class="t-name">TYTO</span>
+            </div>
+          </div>
+          <div class="vignette"></div>
+          <div class="play-btn">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <polygon points="10,6 24,14 10,22" fill="#C9A84C"/>
+            </svg>
+          </div>
+          <div class="yt-badge">
+            <svg viewBox="0 0 90 20" fill="none">
+              <rect x="0" y="0" width="28" height="20" rx="4" fill="#FF0000"/>
+              <polygon points="11,5 22,10 11,15" fill="white"/>
+              <text x="32" y="15" font-family="Arial" font-size="13" font-weight="700" fill="white">YouTube</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <p class="player-caption">Clique para assistir</p>
+
+      <!-- CTA -->
+      <a id="ctaBtn" href="#" class="cta-btn" role="button" aria-label="Entrar no Grupo VIP">
+        <svg class="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        ENTRAR NO GRUPO VIP
+      </a>
+
+    </div>
+  </div><!-- /grid -->
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-inner">
+      <span>© 2025 TYTO Executivos</span>
+      <span>Global Mastermind Network</span>
+      <span>Acesso Restrito</span>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── INJECT CONFIG ───────────────────────────────────────────────
+document.getElementById('guestName').textContent = CONFIG.nomePessoa;
+
+// ── YOUTUBE THUMBNAIL ───────────────────────────────────────────
+(function () {
+  const thumb = CONFIG.thumbYouTube;
+  const el    = document.getElementById('thumbEl');
+  const url   = CONFIG.linkYouTube;
+
+  // Try to extract video ID for auto-thumb
+  let autoThumb = '';
+  try {
+    const u = new URL(url);
+    const v = u.searchParams.get('v') || u.pathname.replace('/','');
+    if (v && v.length === 11) {
+      autoThumb = `https://img.youtube.com/vi/${v}/maxresdefault.jpg`;
+    }
+  } catch(_) {}
+
+  const src = thumb || autoThumb;
+  if (src) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'TYTO Executivos — Apresentação';
+    img.onerror = () => img.remove(); // fallback to ghost logo
+    el.insertBefore(img, el.firstChild);
+  }
+})();
+
+// ── LINKS ───────────────────────────────────────────────────────
+document.getElementById('videoPlayer').addEventListener('click', () => {
+  window.open(CONFIG.linkYouTube, '_blank', 'noopener');
+});
+document.getElementById('videoPlayer').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') window.open(CONFIG.linkYouTube, '_blank', 'noopener');
+});
+document.getElementById('ctaBtn').href = CONFIG.linkWhatsApp;
+document.getElementById('ctaBtn').target = '_blank';
+document.getElementById('ctaBtn').rel = 'noopener';
+
+// Ripple
+document.getElementById('ctaBtn').addEventListener('click', function(e) {
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = this.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  this.appendChild(r);
+  setTimeout(() => r.remove(), 700);
+});
+
+// ── PARTICLE CANVAS ─────────────────────────────────────────────
+(function () {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, particles = [], frame = 0;
+
+  const GOLD   = [201, 168, 76];
+  const BLUE   = [30,  90, 200];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init = false) {
+      this.x     = Math.random() * W;
+      this.y     = init ? Math.random() * H : H + 10;
+      this.vy    = -(Math.random() * .4 + .1);
+      this.vx    = (Math.random() - .5) * .2;
+      this.r     = Math.random() * 1.8 + .4;
+      this.alpha = 0;
+      this.life  = 0;
+      this.maxL  = Math.random() * 200 + 120;
+      const t    = Math.random();
+      this.color = t < .7 ? GOLD : BLUE;
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy; this.life++;
+      const p = this.life / this.maxL;
+      this.alpha = p < .2 ? p / .2 : p > .8 ? (1 - p) / .2 : 1;
+      this.alpha *= .65;
+      if (this.life >= this.maxL) this.reset();
+    }
+    draw() {
+      const [r,g,b] = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < 90; i++) particles.push(new Particle());
+
+  // Connection lines
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 100) {
+          const [r,g,bl] = GOLD;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(${r},${g},${bl},${(1 - dist/100) * .08})`;
+          ctx.lineWidth = .5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    drawLines();
+    particles.forEach(p => { p.update(); p.draw(); });
+    frame++;
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+
+</body>
+</html>
