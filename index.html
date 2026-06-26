@@ -821,12 +821,55 @@ document.getElementById('guestName').textContent = CONFIG.nomePessoa;
 })();
 
 // ── LINKS ───────────────────────────────────────────────────────
-document.getElementById('videoPlayer').addEventListener('click', () => {
-  window.open(CONFIG.linkYouTube, '_blank', 'noopener');
-});
-document.getElementById('videoPlayer').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') window.open(CONFIG.linkYouTube, '_blank', 'noopener');
-});
+(function () {
+  const player = document.getElementById('videoPlayer');
+
+  // Extract the 11-char YouTube video ID from CONFIG.linkYouTube
+  function getVideoId(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) {
+        return u.pathname.replace('/', '').slice(0, 11);
+      }
+      const v = u.searchParams.get('v');
+      if (v) return v.slice(0, 11);
+      const parts = u.pathname.split('/');
+      const idx = parts.indexOf('embed');
+      if (idx >= 0 && parts[idx + 1]) return parts[idx + 1].slice(0, 11);
+    } catch (_) {}
+    return '';
+  }
+
+  function playInline() {
+    if (player.dataset.playing === '1') return;
+    const id = getVideoId(CONFIG.linkYouTube);
+    if (!id) {
+      window.open(CONFIG.linkYouTube, '_blank', 'noopener');
+      return;
+    }
+    const inner = player.querySelector('.player-inner');
+    inner.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    iframe.title = 'TYTO Executivos — Apresentação';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:inherit;';
+    inner.appendChild(iframe);
+    player.dataset.playing = '1';
+    player.style.cursor = 'default';
+    player.removeAttribute('role');
+    player.removeAttribute('tabindex');
+  }
+
+  player.addEventListener('click', playInline);
+  player.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      playInline();
+    }
+  });
+})();
 document.getElementById('ctaBtn').href = CONFIG.linkWhatsApp;
 document.getElementById('ctaBtn').target = '_blank';
 document.getElementById('ctaBtn').rel = 'noopener';
