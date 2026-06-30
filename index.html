@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
 <title>TYTO EXECUTIVOS — Global Mastermind Network</title>
 
 <!-- ============================================================
@@ -10,7 +11,6 @@
   ============================================================ -->
 <script>
   const CONFIG = {
-    nomePessoa:   "Rafael Monteiro",            // ← Nome do convidado
     linkYouTube:  "https://youtu.be/GwOhrzhESGk?si=XIXR6ORCPn53sPlz", // ← Link do vídeo
     linkWhatsApp: "https://chat.whatsapp.com/D5s1ISxhspnDs0WhMaso7O?s=sh&p=a&mlu=2", // ← Link do WhatsApp
     thumbYouTube: ""   // ← URL da thumbnail (deixe vazio para usar padrão gerado)
@@ -161,7 +161,9 @@
     width: 100%;
   }
   .owl-icon {
-    width: clamp(64px, 9vw, 96px);
+    width: clamp(150px, 18vw, 220px);
+    height: auto;
+    display: block;
     filter: drop-shadow(0 0 18px rgba(201,168,76,.7));
     animation: floatOwl 5s ease-in-out infinite;
   }
@@ -358,6 +360,8 @@
   /* Play button */
   .play-btn {
     position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
     width: 68px; height: 68px;
     border-radius: 50%;
     background: rgba(201,168,76,.12);
@@ -368,7 +372,7 @@
     box-shadow: 0 0 0 8px rgba(201,168,76,.06), 0 0 30px rgba(201,168,76,.25);
   }
   .player-outer:hover .play-btn {
-    transform: scale(1.1);
+    transform: translate(-50%, -50%) scale(1.1);
     background: rgba(201,168,76,.22);
     box-shadow: 0 0 0 12px rgba(201,168,76,.09), 0 0 50px rgba(201,168,76,.45);
   }
@@ -645,7 +649,7 @@
 
   <!-- WELCOME BAR -->
   <div class="welcome-bar">
-    <span>Bem-vindo(a), <span class="guest-name" id="guestName"></span> — Acesso Exclusivo Concedido</span>
+    <span>Seja Bem Vindo! Você foi Escolhido - Para Participar do Grupo Exclusivo.</span>
   </div>
 
   <!-- MAIN GRID -->
@@ -656,46 +660,7 @@
     <div class="left">
 
       <div class="logo-mark">
-        <!-- SVG Owl (inline, inspired by the TYTO brand) -->
-        <svg class="owl-icon" viewBox="0 0 120 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="og" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#F0D080"/>
-              <stop offset="55%" stop-color="#C9A84C"/>
-              <stop offset="100%" stop-color="#7A5C1E"/>
-            </radialGradient>
-            <filter id="gf">
-              <feGaussianBlur stdDeviation="2.5" result="blur"/>
-              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-            </filter>
-          </defs>
-          <!-- Globe behind -->
-          <ellipse cx="60" cy="32" rx="28" ry="28" stroke="url(#og)" stroke-width="1" fill="none" opacity=".3"/>
-          <line x1="60" y1="4" x2="60" y2="60" stroke="url(#og)" stroke-width=".7" opacity=".25"/>
-          <line x1="32" y1="32" x2="88" y2="32" stroke="url(#og)" stroke-width=".7" opacity=".25"/>
-          <ellipse cx="60" cy="32" rx="14" ry="28" stroke="url(#og)" stroke-width=".7" fill="none" opacity=".2"/>
-          <!-- Wings -->
-          <path d="M60 55 C45 44 20 40 4 30 C14 48 30 58 50 62Z" fill="url(#og)" opacity=".85"/>
-          <path d="M60 55 C75 44 100 40 116 30 C106 48 90 58 70 62Z" fill="url(#og)" opacity=".85"/>
-          <!-- Body -->
-          <ellipse cx="60" cy="70" rx="22" ry="28" fill="url(#og)"/>
-          <!-- Face -->
-          <ellipse cx="60" cy="63" rx="18" ry="18" fill="url(#og)"/>
-          <!-- Eyes -->
-          <circle cx="53" cy="61" r="6.5" fill="#0D1829"/>
-          <circle cx="67" cy="61" r="6.5" fill="#0D1829"/>
-          <circle cx="53" cy="61" r="4" fill="url(#og)"/>
-          <circle cx="67" cy="61" r="4" fill="url(#og)"/>
-          <circle cx="52" cy="60" r="1.5" fill="#0D1829"/>
-          <circle cx="66" cy="60" r="1.5" fill="#0D1829"/>
-          <!-- Beak -->
-          <path d="M57 68 L60 72 L63 68Z" fill="#7A5C1E"/>
-          <!-- Ear tufts -->
-          <path d="M50 46 L46 36 L54 44Z" fill="url(#og)"/>
-          <path d="M70 46 L74 36 L66 44Z" fill="url(#og)"/>
-          <!-- Chest pattern -->
-          <path d="M48 82 Q60 75 72 82 Q60 92 48 82Z" fill="rgba(0,0,0,.15)"/>
-        </svg>
+        <img class="owl-icon" src="tyto-coruja.png" alt="TYTO Executivos" />
 
         <div class="brand-name">TYTO</div>
         <div class="brand-sub">EXECUTIVOS</div>
@@ -791,9 +756,6 @@
 </div><!-- /page -->
 
 <script>
-// ── INJECT CONFIG ───────────────────────────────────────────────
-document.getElementById('guestName').textContent = CONFIG.nomePessoa;
-
 // ── YOUTUBE THUMBNAIL ───────────────────────────────────────────
 (function () {
   const thumb = CONFIG.thumbYouTube;
