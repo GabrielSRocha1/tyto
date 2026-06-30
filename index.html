@@ -636,6 +636,56 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   }
+
+  /* ─── LANGUAGE SWITCHER ──────────────────────────────────────── */
+  .lang-switcher {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(8,14,26,.6);
+    border: 1px solid rgba(201,168,76,.25);
+    border-radius: 40px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: rgba(250,250,250,.55);
+    font-family: var(--font-body);
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: color .25s, background .25s;
+  }
+  .lang-btn:hover {
+    color: var(--gold-light);
+  }
+  .lang-btn.active {
+    background: linear-gradient(135deg, rgba(201,168,76,.25), rgba(240,208,128,.15));
+    color: var(--gold-light);
+    box-shadow: inset 0 0 0 1px rgba(201,168,76,.4);
+  }
+  @media (max-width: 480px) {
+    .lang-switcher {
+      top: 10px;
+      right: 10px;
+      padding: 3px;
+    }
+    .lang-btn {
+      font-size: .62rem;
+      padding: 5px 9px;
+      letter-spacing: .1em;
+    }
+  }
 </style>
 </head>
 <body>
@@ -645,11 +695,18 @@
 <div class="ambient-right"></div>
 <div class="scanlines"></div>
 
+<!-- LANGUAGE SWITCHER -->
+<div class="lang-switcher" role="group" aria-label="Language selector">
+  <button type="button" class="lang-btn active" data-lang="pt">PT</button>
+  <button type="button" class="lang-btn" data-lang="en">EN</button>
+  <button type="button" class="lang-btn" data-lang="es">ES</button>
+</div>
+
 <div class="page">
 
   <!-- WELCOME BAR -->
   <div class="welcome-bar">
-    <span>Seja Bem Vindo! Você foi Escolhido - Para Participar do Grupo Exclusivo.</span>
+    <span data-i18n="welcome">Seja Bem Vindo! Você foi Escolhido - Para Participar do Grupo Exclusivo.</span>
   </div>
 
   <!-- MAIN GRID -->
@@ -669,16 +726,16 @@
 
       <div class="sep"></div>
 
-      <h1 class="headline">A Elite Global<br>de Mentes Brilhantes</h1>
-      <p class="subheadline">
+      <h1 class="headline" data-i18n="headline" data-i18n-html>A Elite Global<br>de Mentes Brilhantes</h1>
+      <p class="subheadline" data-i18n="subheadline">
         Você foi selecionado para acessar uma rede exclusiva de executivos, empresários e líderes de alta performance ao redor do mundo.
       </p>
 
       <div class="badges">
-        <span class="badge">Elite Global</span>
-        <span class="badge">Alto Nível</span>
-        <span class="badge">Acesso Restrito</span>
-        <span class="badge">Mastermind</span>
+        <span class="badge" data-i18n="badge1">Elite Global</span>
+        <span class="badge" data-i18n="badge2">Alto Nível</span>
+        <span class="badge" data-i18n="badge3">Acesso Restrito</span>
+        <span class="badge" data-i18n="badge4">Mastermind</span>
       </div>
 
     </div>
@@ -686,10 +743,10 @@
     <!-- RIGHT -->
     <div class="right">
 
-      <p class="right-label">Assista à apresentação exclusiva</p>
+      <p class="right-label" data-i18n="rightLabel">Assista à apresentação exclusiva</p>
 
       <!-- VIDEO PLAYER -->
-      <div class="player-outer" id="videoPlayer" role="button" aria-label="Assistir apresentação no YouTube" tabindex="0">
+      <div class="player-outer" id="videoPlayer" role="button" aria-label="Assistir apresentação no YouTube" data-i18n-aria="playerAria" tabindex="0">
         <div class="player-inner">
           <div class="thumb" id="thumbEl">
             <!-- Thumbnail injected by JS -->
@@ -731,14 +788,14 @@
         </div>
       </div>
 
-      <p class="player-caption">Clique para assistir</p>
+      <p class="player-caption" data-i18n="playerCaption">Clique para assistir</p>
 
       <!-- CTA -->
-      <a id="ctaBtn" href="#" class="cta-btn" role="button" aria-label="Entrar no Grupo VIP">
+      <a id="ctaBtn" href="#" class="cta-btn" role="button" aria-label="Entrar no Grupo VIP" data-i18n-aria="ctaAria">
         <svg class="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
         </svg>
-        ENTRAR NO GRUPO VIP
+        <span data-i18n="cta">ENTRAR NO GRUPO VIP</span>
       </a>
 
     </div>
@@ -747,15 +804,123 @@
   <!-- FOOTER -->
   <div class="footer">
     <div class="footer-inner">
-      <span>© 2025 TYTO Executivos</span>
-      <span>Global Mastermind Network</span>
-      <span>Acesso Restrito</span>
+      <span data-i18n="footer1">© 2025 TYTO Executivos</span>
+      <span data-i18n="footer2">Global Mastermind Network</span>
+      <span data-i18n="footer3">Acesso Restrito</span>
     </div>
   </div>
 
 </div><!-- /page -->
 
 <script>
+// ── I18N / LANGUAGE SWITCHER ────────────────────────────────────
+const I18N = {
+  pt: {
+    title:         'TYTO EXECUTIVOS — Global Mastermind Network',
+    welcome:       'Seja Bem Vindo! Você foi Escolhido - Para Participar do Grupo Exclusivo.',
+    headline:      'A Elite Global<br>de Mentes Brilhantes',
+    subheadline:   'Você foi selecionado para acessar uma rede exclusiva de executivos, empresários e líderes de alta performance ao redor do mundo.',
+    badge1:        'Elite Global',
+    badge2:        'Alto Nível',
+    badge3:        'Acesso Restrito',
+    badge4:        'Mastermind',
+    rightLabel:    'Assista à apresentação exclusiva',
+    playerAria:    'Assistir apresentação no YouTube',
+    playerCaption: 'Clique para assistir',
+    cta:           'ENTRAR NO GRUPO VIP',
+    ctaAria:       'Entrar no Grupo VIP',
+    footer1:       '© 2025 TYTO Executivos',
+    footer2:       'Global Mastermind Network',
+    footer3:       'Acesso Restrito'
+  },
+  en: {
+    title:         'TYTO EXECUTIVES — Global Mastermind Network',
+    welcome:       'Welcome! You Have Been Chosen — To Join the Exclusive Group.',
+    headline:      'The Global Elite<br>of Brilliant Minds',
+    subheadline:   'You have been selected to access an exclusive network of executives, entrepreneurs and high-performance leaders from around the world.',
+    badge1:        'Global Elite',
+    badge2:        'High Level',
+    badge3:        'Restricted Access',
+    badge4:        'Mastermind',
+    rightLabel:    'Watch the exclusive presentation',
+    playerAria:    'Watch presentation on YouTube',
+    playerCaption: 'Click to watch',
+    cta:           'JOIN THE VIP GROUP',
+    ctaAria:       'Join the VIP Group',
+    footer1:       '© 2025 TYTO Executives',
+    footer2:       'Global Mastermind Network',
+    footer3:       'Restricted Access'
+  },
+  es: {
+    title:         'TYTO EJECUTIVOS — Global Mastermind Network',
+    welcome:       '¡Bienvenido! Has Sido Elegido — Para Participar del Grupo Exclusivo.',
+    headline:      'La Élite Global<br>de Mentes Brillantes',
+    subheadline:   'Has sido seleccionado para acceder a una red exclusiva de ejecutivos, empresarios y líderes de alto rendimiento de todo el mundo.',
+    badge1:        'Élite Global',
+    badge2:        'Alto Nivel',
+    badge3:        'Acceso Restringido',
+    badge4:        'Mastermind',
+    rightLabel:    'Mira la presentación exclusiva',
+    playerAria:    'Ver presentación en YouTube',
+    playerCaption: 'Haz clic para ver',
+    cta:           'UNIRSE AL GRUPO VIP',
+    ctaAria:       'Unirse al Grupo VIP',
+    footer1:       '© 2025 TYTO Ejecutivos',
+    footer2:       'Global Mastermind Network',
+    footer3:       'Acceso Restringido'
+  }
+};
+
+(function () {
+  const HTML_LANG = { pt: 'pt-BR', en: 'en', es: 'es' };
+  const STORAGE_KEY = 'tyto-lang';
+
+  function applyLang(lang) {
+    const dict = I18N[lang] || I18N.pt;
+
+    document.documentElement.lang = HTML_LANG[lang] || 'pt-BR';
+    if (dict.title) document.title = dict.title;
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (!dict[key]) return;
+      if (el.hasAttribute('data-i18n-html')) {
+        el.innerHTML = dict[key];
+      } else {
+        el.textContent = dict[key];
+      }
+    });
+
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      const key = el.getAttribute('data-i18n-aria');
+      if (dict[key]) el.setAttribute('aria-label', dict[key]);
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (_) {}
+  }
+
+  function detectInitialLang() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored && I18N[stored]) return stored;
+    } catch (_) {}
+    const nav = (navigator.language || 'pt').toLowerCase();
+    if (nav.startsWith('en')) return 'en';
+    if (nav.startsWith('es')) return 'es';
+    return 'pt';
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+  });
+
+  applyLang(detectInitialLang());
+})();
+
 // ── YOUTUBE THUMBNAIL ───────────────────────────────────────────
 (function () {
   const thumb = CONFIG.thumbYouTube;
